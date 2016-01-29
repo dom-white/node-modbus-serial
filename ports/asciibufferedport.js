@@ -77,9 +77,9 @@ function checkData(modbus, buf) {
 }
 
 /**
- * Simulate a modbus-RTU port using buffered serial connection
+ * Simulate a modbus-ascii port using buffered serial connection
  */
-var RTUBufferedPort = function(path, options) {
+var AsciiBufferedPort = function(path, options) {
     var modbus = this;
 
     // options
@@ -139,25 +139,25 @@ var RTUBufferedPort = function(path, options) {
 
     events.call(this);
 }
-util.inherits(RTUBufferedPort, events);
+util.inherits(AsciiBufferedPort, events);
 
 /**
  * Simulate successful port open
  */
-RTUBufferedPort.prototype.open = function (callback) {
+AsciiBufferedPort.prototype.open = function (callback) {
     this._client.open(callback);
 }
 
 /**
  * Simulate successful close port
  */
-RTUBufferedPort.prototype.close = function (callback) {
+AsciiBufferedPort.prototype.close = function (callback) {
     this._client.close(callback);
 }
 /**
  * Send data to a modbus slave via telnet server
  */
-RTUBufferedPort.prototype.write = function (data) {
+AsciiBufferedPort.prototype.write = function (data) {
     // check data length
     if (data.length < 5) {
         // raise an error ?
@@ -198,4 +198,4 @@ RTUBufferedPort.prototype.write = function (data) {
     this._client.write(_encodedData);
 }
 
-module.exports = RTUBufferedPort;
+module.exports = AsciiBufferedPort;
