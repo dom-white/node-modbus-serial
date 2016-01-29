@@ -372,7 +372,7 @@ ModbusRTU.prototype.writeFC2 = function (address, dataAddress, length, next, cod
     buf.writeUInt16BE(length, 4);
 
     // calculate and add crc or lrc byte to buffer
-    if( this._ascii === true ) {
+    if( this._ascii === false ) {
         _CRC16(buf, codeLength);
     } else {
         _LRC(buf, codeLength);
@@ -430,7 +430,7 @@ ModbusRTU.prototype.writeFC4 = function (address, dataAddress, length, next, cod
     buf.writeUInt16BE(length, 4);
 
     // calculate and add crc or lrc byte to buffer
-    if( this._ascii === true ) {
+    if( this._ascii === false ) {
         _CRC16(buf, codeLength);
     } else {
         _LRC(buf, codeLength);
@@ -481,7 +481,7 @@ ModbusRTU.prototype.writeFC5 =  function (address, dataAddress, state, next) {
     }
 
     // calculate and add crc or lrc byte to buffer
-    if( this._ascii === true ) {
+    if( this._ascii === false ) {
         _CRC16(buf, codeLength);
     } else {
         _LRC(buf, codeLength);
@@ -527,7 +527,7 @@ ModbusRTU.prototype.writeFC6 =  function (address, dataAddress, value, next) {
     buf.writeUInt16BE(value, 4);
 
     // calculate and add crc or lrc byte to buffer
-    if( this._ascii === true ) {
+    if( this._ascii === false ) {
         _CRC16(buf, codeLength);
     } else {
         _LRC(buf, codeLength);
@@ -579,7 +579,7 @@ ModbusRTU.prototype.writeFC16 =  function (address, dataAddress, array, next) {
     }
 
     // calculate and add crc or lrc byte to buffer
-    if( this._ascii === true ) {
+    if( this._ascii === false ) {
         _CRC16(buf, codeLength);
     } else {
         _LRC(buf, codeLength);

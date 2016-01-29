@@ -45,6 +45,9 @@ var addConnctionAPI = function(Modbus) {
         // re-set the serial port to use
         this._port = serialPort;
 
+        // mark as not ascii encoded
+        this._ascii = false;
+
         // open and call next
         this.open(next);
     }
@@ -71,6 +74,9 @@ var addConnctionAPI = function(Modbus) {
 
         // re-set the port to use
         this._port = tcpPort;
+
+        // mark as not ascii encoded
+        this._ascii = false;
 
         // open and call next
         this.open(next);
@@ -99,6 +105,9 @@ var addConnctionAPI = function(Modbus) {
         // re-set the port to use
         this._port = telnetPort;
 
+        // mark as not ascii encoded
+        this._ascii = false;
+
         // open and call next
         this.open(next);
     }
@@ -126,6 +135,9 @@ var addConnctionAPI = function(Modbus) {
         // re-set the port to use
         this._port = c701Port;
 
+        // mark as not ascii encoded
+        this._ascii = false;
+
         // open and call next
         this.open(next);
     }
@@ -150,6 +162,9 @@ var addConnctionAPI = function(Modbus) {
 
         // re-set the serial port to use
         this._port = serialPort;
+
+        // mark as not ascii encoded
+        this._ascii = false;
 
         // open and call next
         this.open(next);
