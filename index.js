@@ -353,16 +353,17 @@ ModbusRTU.prototype.writeFC2 = function (address, dataAddress, length, next, cod
     this._nextCode = code;
     if( this._ascii === false ) {
         this._nextLength = 3 + parseInt((length - 1) / 8 + 1) + 2;
-    } else {}
+    } else {
         this._nextLength = 3 + parseInt((length - 1) / 8 + 1) + 1;
     }
     this._next = next;
 
     var codeLength = 6;
+    var buf;
     if( this._ascii === false ) {
-        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
-    } else {}
-        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+        buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {
+        buf = new Buffer(codeLength + 1); // add 1 lrc bytes
     }
 
     buf.writeUInt8(address, 0);
@@ -410,16 +411,17 @@ ModbusRTU.prototype.writeFC4 = function (address, dataAddress, length, next, cod
     this._nextCode = code;
     if( this._ascii === false ) {
         this._nextLength = 3 + 2 * length + 2;
-    } else {}
+    } else {
         this._nextLength = 3 + 2 * length + 1;
     }
     this._next = next;
 
     var codeLength = 6;
+    var buf;
     if( this._ascii === false ) {
-        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
-    } else {}
-        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+        buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {
+        buf = new Buffer(codeLength + 1); // add 1 lrc bytes
     }
 
     buf.writeUInt8(address, 0);
@@ -455,16 +457,17 @@ ModbusRTU.prototype.writeFC5 =  function (address, dataAddress, state, next) {
     this._nextLength = 8;
     if( this._ascii === false ) {
         this._nextLength = 8;
-    } else {}
+    } else {
         this._nextLength = 7;
     }
     this._next = next;
 
     var codeLength = 6;
+    var buf;
     if( this._ascii === false ) {
-        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
-    } else {}
-        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+        buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {
+        buf = new Buffer(codeLength + 1); // add 1 lrc bytes
     }
 
     buf.writeUInt8(address, 0);
@@ -504,16 +507,17 @@ ModbusRTU.prototype.writeFC6 =  function (address, dataAddress, value, next) {
     this._nextCode = code;
     if( this._ascii === false ) {
         this._nextLength = 8;
-    } else {}
+    } else {
         this._nextLength = 7;
     }
     this._next = next;
 
     var codeLength = 6; // 1B deviceAddress + 1B functionCode + 2B dataAddress + 2B value
+    var buf;
     if( this._ascii === false ) {
-        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
-    } else {}
-        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+         buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {
+        buf = new Buffer(codeLength + 1); // add 1 lrc bytes
     }
 
     buf.writeUInt8(address, 0);
@@ -551,16 +555,17 @@ ModbusRTU.prototype.writeFC16 =  function (address, dataAddress, array, next) {
     this._nextCode = code;
     if( this._ascii === false ) {
         this._nextLength = 8;
-    } else {}
+    } else {
         this._nextLength = 7;
     }
     this._next = next;
 
     var codeLength = 7 + 2 * array.length;
+    var buf;
     if( this._ascii === false ) {
-        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
-    } else {}
-        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+        buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {
+        buf = new Buffer(codeLength + 1); // add 1 lrc bytes
     }
 
     buf.writeUInt8(address, 0);
