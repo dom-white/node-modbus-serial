@@ -58,6 +58,31 @@ function _CRC16(buf, length) {
 }
 
 /**
+ * Calculate buffer LRC and add it to the
+ * end of the buffer.
+ *
+ * @param {buffer} buf the data buffer.
+ * @param {number} length the length of the buffer without LRC.
+ *
+ * @return {number} the calculated LRC
+ */
+function _LRC(buf, length) {
+    var lrc = 0;
+
+    for (var i = 0; i < length; i++) {
+         lrc += buf[i] & 0xFF;
+     }
+     lrc = ((lrc ^ 0xFF) + 1) & 0xFF;
+
+     // add to end of buffer
+     buf.writeUInt8(lrc, length);
+
+     // return the lrc
+     return lrc;
+}
+
+
+/**
  * Parse the data for a Modbus -
  * Read Coils (FC=02,01)
  *
@@ -232,17 +257,33 @@ ModbusRTU.prototype.open = function (callback) {
                 modbus._nextCode = null;
                 modbus._next = null;
 
-                /* check message CRC
-                 * if CRC is bad raise an error
-                 */
-                var crcIn = data.readUInt16LE(length - 2);
-                var crc = _CRC16(data, length - 2);
+                // if response is encoded as ascii
+                if( modbus._ascii === false ) {
+                    /* check message CRC
+                     * if CRC is bad raise an error
+                     */
+                    var crcIn = data.readUInt16LE(length - 2);
+                    var crc = _CRC16(data, length - 2);
 
-                if (crcIn != crc) {
-                    error = "CRC error";
-                    if (next)
-                        next(error);
-                    return;
+                    if (crcIn != crc) {
+                        error = "CRC error";
+                        if (next)
+                            next(error);
+                        return;
+                    }
+                } else {
+                    /* check message LRC
+                     * if LRC is bad raise an error
+                     */
+                     var lrcIn = data.readUInt8(data.length - 1);
+                     var lrc = _LRC(data, data.length - 1);
+
+                     if (lrcIn != lrc) {
+                         error = "LRC error";
+                         if (next)
+                             next(error);
+                         return;
+                     }
                 }
 
                 /* parse incoming data
@@ -310,19 +351,31 @@ ModbusRTU.prototype.writeFC2 = function (address, dataAddress, length, next, cod
     // set state variables
     this._nextAddress = address;
     this._nextCode = code;
-    this._nextLength = 3 + parseInt((length - 1) / 8 + 1) + 2;
+    if( this._ascii === false ) {
+        this._nextLength = 3 + parseInt((length - 1) / 8 + 1) + 2;
+    } else {}
+        this._nextLength = 3 + parseInt((length - 1) / 8 + 1) + 1;
+    }
     this._next = next;
 
     var codeLength = 6;
-    var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    if( this._ascii === false ) {
+        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {}
+        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+    }
 
     buf.writeUInt8(address, 0);
     buf.writeUInt8(code, 1);
     buf.writeUInt16BE(dataAddress, 2);
     buf.writeUInt16BE(length, 4);
 
-    // add crc bytes to buffer
-    _CRC16(buf, codeLength);
+    // calculate and add crc or lrc byte to buffer
+    if( this._ascii === true ) {
+        _CRC16(buf, codeLength);
+    } else {
+        _LRC(buf, codeLength);
+    }
 
     // write buffer to serial port
     this._port.write(buf);
@@ -355,19 +408,31 @@ ModbusRTU.prototype.writeFC4 = function (address, dataAddress, length, next, cod
     // set state variables
     this._nextAddress = address;
     this._nextCode = code;
-    this._nextLength = 3 + 2 * length + 2;
+    if( this._ascii === false ) {
+        this._nextLength = 3 + 2 * length + 2;
+    } else {}
+        this._nextLength = 3 + 2 * length + 1;
+    }
     this._next = next;
 
     var codeLength = 6;
-    var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    if( this._ascii === false ) {
+        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {}
+        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+    }
 
     buf.writeUInt8(address, 0);
     buf.writeUInt8(code, 1);
     buf.writeUInt16BE(dataAddress, 2);
     buf.writeUInt16BE(length, 4);
 
-    // add crc bytes to buffer
-    _CRC16(buf, codeLength);
+    // calculate and add crc or lrc byte to buffer
+    if( this._ascii === true ) {
+        _CRC16(buf, codeLength);
+    } else {
+        _LRC(buf, codeLength);
+    }
 
     // write buffer to serial port
     this._port.write(buf);
@@ -388,10 +453,19 @@ ModbusRTU.prototype.writeFC5 =  function (address, dataAddress, state, next) {
     this._nextAddress = address;
     this._nextCode = code;
     this._nextLength = 8;
+    if( this._ascii === false ) {
+        this._nextLength = 8;
+    } else {}
+        this._nextLength = 7;
+    }
     this._next = next;
 
     var codeLength = 6;
-    var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    if( this._ascii === false ) {
+        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {}
+        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+    }
 
     buf.writeUInt8(address, 0);
     buf.writeUInt8(code, 1);
@@ -403,8 +477,12 @@ ModbusRTU.prototype.writeFC5 =  function (address, dataAddress, state, next) {
         buf.writeUInt16BE(0x0000, 4);
     }
 
-    // add crc bytes to buffer
-    _CRC16(buf, codeLength);
+    // calculate and add crc or lrc byte to buffer
+    if( this._ascii === true ) {
+        _CRC16(buf, codeLength);
+    } else {
+        _LRC(buf, codeLength);
+    }
 
     // write buffer to serial port
     this._port.write(buf);
@@ -424,11 +502,19 @@ ModbusRTU.prototype.writeFC6 =  function (address, dataAddress, value, next) {
     // set state variables
     this._nextAddress = address;
     this._nextCode = code;
-    this._nextLength = 8;
+    if( this._ascii === false ) {
+        this._nextLength = 8;
+    } else {}
+        this._nextLength = 7;
+    }
     this._next = next;
 
     var codeLength = 6; // 1B deviceAddress + 1B functionCode + 2B dataAddress + 2B value
-    var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    if( this._ascii === false ) {
+        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {}
+        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+    }
 
     buf.writeUInt8(address, 0);
     buf.writeUInt8(code, 1);
@@ -436,8 +522,12 @@ ModbusRTU.prototype.writeFC6 =  function (address, dataAddress, value, next) {
 
     buf.writeUInt16BE(value, 4);
 
-    // add crc bytes to buffer
-    _CRC16(buf, codeLength);
+    // calculate and add crc or lrc byte to buffer
+    if( this._ascii === true ) {
+        _CRC16(buf, codeLength);
+    } else {
+        _LRC(buf, codeLength);
+    }
 
     // write buffer to serial port
     this._port.write(buf);
@@ -459,11 +549,19 @@ ModbusRTU.prototype.writeFC16 =  function (address, dataAddress, array, next) {
     // set state variables
     this._nextAddress = address;
     this._nextCode = code;
-    this._nextLength = 8;
+    if( this._ascii === false ) {
+        this._nextLength = 8;
+    } else {}
+        this._nextLength = 7;
+    }
     this._next = next;
 
     var codeLength = 7 + 2 * array.length;
-    var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    if( this._ascii === false ) {
+        var buf = new Buffer(codeLength + 2); // add 2 crc bytes
+    } else {}
+        var buf = new Buffer(codeLength + 1); // add 1 lrc bytes
+    }
 
     buf.writeUInt8(address, 0);
     buf.writeUInt8(code, 1);
@@ -475,8 +573,12 @@ ModbusRTU.prototype.writeFC16 =  function (address, dataAddress, array, next) {
         buf.writeUInt16BE(array[i], 7 + 2 * i);
     }
 
-    // add crc bytes to buffer
-    _CRC16(buf, codeLength);
+    // calculate and add crc or lrc byte to buffer
+    if( this._ascii === true ) {
+        _CRC16(buf, codeLength);
+    } else {
+        _LRC(buf, codeLength);
+    }
 
     // write buffer to serial port
     this._port.write(buf);
