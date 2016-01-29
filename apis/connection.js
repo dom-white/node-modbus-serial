@@ -177,7 +177,7 @@ var addConnctionAPI = function(Modbus) {
      * @param {object} options - the serial port options - optional.
      * @param {function} next the function to call next.
      */
-    cl.connectAsciiBuffered = function (path, options, next) {_port
+    cl.connectAsciiBuffered = function (path, options, next) {
         // check if we have options
         if (typeof(next) == 'undefined' && typeof(options) == 'function') {
             next = options;
